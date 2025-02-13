@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Mailings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<style>
+    #loading {
+        display: none;
+        /* Inicialmente escondido */
+    }
+
+    #loading.visible {
+        display: block;
+        /* Mostra quando a classe 'visible' é adicionada */
+    }
+</style>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
+        <h1 class="text-2xl font-bold mb-4 text-center">Gerador de Mailings</h1>
+        <p class="mb-6 text-gray-600 text-center">Selecione as opções abaixo e clique em "Executar":</p>
+
+        <form id="mailingForm" action="/submit" method="POST">
+            <div class="mb-4">
+                <label for="estado" class="block text-sm font-medium text-gray-700">Qual Estado?</label>
+                <select id="estado" name="estado" multiple
+                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500 focus:border-blue-500">
+                    <option value="AC">Acre</option>
+                    <option value="AL">Alagoas</option>
+                    <option value="AP">Amapá</option>
+                    <option value="AM">Amazonas</option>
+                    <option value="BA">Bahia</option>
+                    <option value="CE">Ceará</option>
+                    <option value="DF">Distrito Federal</option>
+                    <option value="ES">Espírito Santo</option>
+                    <option value="GO">Goiás</option>
+                    <option value="MA">Maranhão</option>
+                    <option value="MT">Mato Grosso</option>
+                    <option value="MS">Mato Grosso do Sul</option>
+                    <option value="MG">Minas Gerais</option>
+                    <option value="PA">Pará</option>
+                    <option value="PB">Paraíba</option>
+                    <option value="PR">Paraná</option>
+                    <option value="PE">Pernambuco</option>
+                    <option value="PI">Piauí</option>
+                    <option value="RJ">Rio de Janeiro</option>
+                    <option value="RN">Rio Grande do Norte</option>
+                    <option value="RS">Rio Grande do Sul</option>
+                    <option value="RO">Rondônia</option>
+                    <option value="RR">Roraima</option>
+                    <option value="SC">Santa Catarina</option>
+                    <option value="SP">São Paulo</option>
+                    <option value="SE">Sergipe</option>
+                    <option value="TO">Tocantins</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="cidade" class="block text-sm font-medium text-gray-700">Qual Cidade? Utilize ";" para mais
+                    de uma opção.</label>
+                <input type="text" id="cidade" name="cidade" required
+                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <fieldset class="mb-4">
+                <legend class="block text-sm font-medium text-gray-700">Repetição de número?</legend>
+                <div class="mt-2">
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" id="rep1" name="repeticao" value="1"
+                            class="form-checkbox h-4 w-4 text-blue-600">
+                        <span class="ml-2">1</span>
+                    </label>
+                    <label class="inline-flex items-center ml-4">
+                        <input type="checkbox" id="rep2" name="repeticao" value="2"
+                            class="form-checkbox h-4 w-4 text-blue-600">
+                        <span class="ml-2">2</span>
+                    </label>
+                    <label class="inline-flex items-center ml-4">
+                        <input type="checkbox" id="rep3" name="repeticao" value="3"
+                            class="form-checkbox h-4 w-4 text-blue-600">
+                        <span class="ml-2">3</span>
+                    </label>
+                </div>
+            </fieldset>
+
+            <fieldset class="mb-4">
+                <legend class="block text-sm font-medium text-gray-700">Tipo de Telefone?</legend>
+                <div class="mt-2">
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" id="fixa" name="tipo_telefone" value="Fixa"
+                            class="form-checkbox h-4 w-4 text-blue-600">
+                        <span class="ml-2">Fixa</span>
+                    </label>
+                    <label class="inline-flex items-center ml-4">
+                        <input type="checkbox" id="movel" name="tipo_telefone" value="Móvel"
+                            class="form-checkbox h-4 w-4 text-blue-600">
+                        <span class="ml-2">Móvel</span>
+                    </label>
+                </div>
+            </fieldset>
+
+            <div class="mb-4">
+                <label for="operadora" class="block text-sm font-medium text-gray-700">Operadora?</label>
+                <select id="operadora" name="operadora" multiple
+                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500 focus:border-blue-500">
+                    <option value="VIVO">VIVO</option>
+                    <option value="Claro">Claro</option>
+                    <option value="TIM">TIM</option>
+                    <option value="Oi">Oi</option>
+                    <option value="Algar">Algar</option>
+                    <option value="Brisanet">Brisanet</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="cnae" class="block text-sm font-medium text-gray-700">CNAE? Utilize ";" para mais de uma
+                    opção.</label>
+                <input type="text" id="cnae" name="cnae" required
+                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div class="mb-4">
+                <label for="natureza" class="block text-sm font-medium text-gray-700">Natureza Jurídica?</label>
+                <select id="natureza" name="natureza" multiple
+                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500 focus:border-blue-500">
+                    <option value="ASSOCIACAO PRIVADA">ASSOCIACAO PRIVADA</option>
+                    <option value="CONDOMINIO EDILICIO">CONDOMINIO EDILICIO</option>
+                    <option value="ME">ME</option>
+                    <option value="MEI">MEI</option>
+                    <option value="LTDA">LTDA</option>
+                    <option value="OUTROS">OUTROS</option>
+                </select>
+            </div>
+
+            <div id="loading"
+                class="hidden text-center mt-4 text-gray-600 font-bold py-2 px-4 rounded hover:bg-blue-600">
+                Carregando...</div>
+
+            <div class="flex justify-between">
+                <button type="button" id="testDB" class="bg-orange-500 text-white font-bold py-2 px-4 rounded hover:bg-orange-600">Testar
+                    Conexão</button>
+                <button type="button" id="executar"
+                    class="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600">Executar</button>
+                <button type="button" id="exportCSV"
+                    class="bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-600">Exportar</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function testDB() {
+            // Testar conexão com o banco de dados
+            fetch('/test-db')
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data); // Loga a resposta do servidor
+                    alert("Conexão bem-sucedida!");
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                });
+        }
+
+        // Executar a consulta SQL com método POST
+        function executar() {
+            const loadingElement = document.getElementById('loading');
+
+            const form = document.getElementById('mailingForm');
+            const estado = Array.from(form.estado.selectedOptions).map(option => option.value.split(';'));
+            const cidade = form.cidade.value.split(';');
+            const repeticao = Array.from(form.repeticao).filter(input => input.checked).map(input => input.value.split(';'));
+            const tipoTelefone = Array.from(form.tipo_telefone).filter(input => input.checked).map(input => input.value.split(';'));
+            const operadora = Array.from(form.operadora.selectedOptions).map(option => option.value.split(';'));
+            const cnae = form.cnae.value.split(';');
+            const natureza = Array.from(form.natureza.selectedOptions).map(option => option.value.split(';'));
+
+            const dados = {
+                estado,
+                cidade,
+                repeticao,
+                tipoTelefone,
+                operadora,
+                cnae,
+                natureza
+            };
+
+            console.log(dados);
+
+            // se todos foram preenchidos
+            // if (cidade.length > 0 && cidade.length < 3 && repeticao.length > 0 && tipoTelefone.length > 0 && operadora.length > 0 && cnae.length > 0 && natureza.length > 0) {
+
+            //     // Mostra o elemento de loading
+            //     loadingElement.classList.add('visible');
+
+            //     fetch('/executar', {
+            //         method: 'POST',
+            //         // enviar os dados do formulário para o servidor
+            //         body: {}
+            //     })
+            //         .then(response => {
+            //             // Esconde o elemento de loading
+            //             loadingElement.classList.remove('visible');
+
+            //             return response.json();
+            //         })
+            //         .then(data => {
+            //             console.log(data); // Loga a resposta do servidor
+            //             // Aqui você pode processar os dados recebidos
+            //         })
+            //         .catch(error => {
+            //             // Esconde o elemento de loading em caso de erro
+            //             loadingElement.classList.remove('visible');
+            //             console.error('Erro:', error);
+            //         });
+            // }
+
+        }
+
+        function exportCSV() {
+            alert('Exportar CSV');            
+        }
+
+        document.querySelector('#testDB').addEventListener('click', testDB);
+        document.querySelector('#executar').addEventListener('click', executar);
+        document.querySelector('#exportCSV').addEventListener('click', exportCSV);
+    </script>
+</body>
+
+</html>
