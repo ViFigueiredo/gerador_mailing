@@ -11,12 +11,14 @@ app = Flask(__name__)
 
 # Configuração do SQL Server
 db_server = os.getenv('db_server')
+db_instance = os.getenv('db_instance')
+db_port = os.getenv('db_port')
 db_name = os.getenv('db_name')
 db_username = os.getenv('db_username')
 db_password = os.getenv('db_password')
 table_name = os.getenv('table_name')
 
-conn = pyodbc.connect(f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={db_server};DATABASE={db_name};UID={db_username};PWD={db_password}')
+conn = pyodbc.connect(f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={db_server}\\{db_instance},{db_port};DATABASE={db_name};UID={db_username};PWD={db_password};Trusted_Connection=no;')
 
 # Função para formatar listas para SQL
 def format_sql_list(values):

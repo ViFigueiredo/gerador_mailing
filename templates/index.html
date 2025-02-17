@@ -72,100 +72,103 @@
                         <legend class="font-semibold">Repetição de número?</legend>
                         <div class="card flex flex-wrap justify-center gap-4">
                             <div class="flex items-center gap-2">
-                                <Checkbox v-model="formData.repeticoes" inputId="ingredient1" name="pizza" value="1" />
-                                <label for="ingredient1"> Cheese </label>
+                                <div class="">
+                                    <Checkbox v-model="formData.repeticoes" inputId="check1" value="1" />
+                                </div>
+                                <span>1</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <Checkbox v-model="formData.repeticoes" inputId="ingredient2" name="pizza" value="2" />
-                                <label for="ingredient2"> Mushroom </label>
+                                <div class="">
+                                    <Checkbox v-model="formData.repeticoes" inputId="check2" value="2" />
+                                </div>
+                                <span>2</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <Checkbox v-model="formData.repeticoes" inputId="ingredient3" name="pizza" value="3" />
-                                <label for="ingredient3"> Pepper </label>
+                                <div class="">
+                                    <Checkbox v-model="formData.repeticoes" inputId="check3" value="3" />
+                                </div>
+                                <span>3</span>
                             </div>
                         </div>
-                        <!-- <div class="flex space-x-4 mt-2"> -->
-                        <!-- <label v-for="n in 3" :key="n" class="inline-flex items-center">
-                                <input type="checkbox" :value="n" v-model="formData.repeticoes" class="form-checkbox">
-                                <span class="ml-2">  </span>
-                            </label> -->
-                <!-- </div> -->
-                </fieldset>
+                    </fieldset>
 
-                <!-- Tipo de Telefone -->
-                <fieldset class="border p-4 rounded">
-                    <legend class="font-semibold">Tipo de Telefone?</legend>
-                    <div class="flex space-x-4 mt-2">
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" value="FIXA" v-model="formData.tiposTelefone" class="form-checkbox">
-                            <span class="ml-2">Fixa</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" value="CELULAR" v-model="formData.tiposTelefone"
-                                class="form-checkbox">
-                            <span class="ml-2">Móvel</span>
-                        </label>
+                    <!-- Tipo de Telefone -->
+                    <fieldset class="border p-4 rounded">
+                        <legend class="font-semibold">Tipo de Telefone?</legend>
+                        <div class="flex space-x-4 mt-2">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" value="FIXA" v-model="formData.tiposTelefone"
+                                    class="form-checkbox">
+                                <span class="ml-2">Fixa</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" value="CELULAR" v-model="formData.tiposTelefone"
+                                    class="form-checkbox">
+                                <span class="ml-2">Móvel</span>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <!-- Operadora -->
+                    <div>
+                        <label for="operadora" class="block mb-2 font-semibold">Operadora?</label>
+                        <select id="operadora" v-model="formData.operadoras" multiple class="w-full p-2 border rounded">
+                            <option value="VIVO">VIVO</option>
+                            <option value="TIM">TIM</option>
+                            <option value="CLARO">Claro</option>
+                            <option value="OI">Oi</option>
+                            <option value="Algar">Algar</option>
+                        </select>
                     </div>
-                </fieldset>
+                </div>
 
-                <!-- Operadora -->
-                <div>
-                    <label for="operadora" class="block mb-2 font-semibold">Operadora?</label>
-                    <select id="operadora" v-model="formData.operadoras" multiple class="w-full p-2 border rounded">
-                        <option value="VIVO">VIVO</option>
-                        <option value="TIM">TIM</option>
-                        <option value="CLARO">Claro</option>
-                        <option value="OI">Oi</option>
-                        <option value="Algar">Algar</option>
-                    </select>
+                <div id="empresa" class="space-y-6">
+                    <!-- CNAE -->
+                    <div>
+                        <label for="cnae" class="block mb-2 font-semibold">CNAE? Utilize ";" para mais de uma
+                            opção.</label>
+                        <input type="text" id="cnae" v-model="formData.cnaes" class="w-full p-2 border rounded">
+                    </div>
+
+                    <!-- Natureza Jurídica -->
+                    <div>
+                        <label for="natureza" class="block mb-2 font-semibold">Natureza Jurídica?</label>
+                        <select id="natureza" v-model="formData.naturezas" multiple class="w-full p-2 border rounded">
+                            <option value="ASSOCIACAO PRIVADA">ASSOCIACAO PRIVADA</option>
+                            <option value="MEI">MEI</option>
+                            <option value="ME">ME</option>
+                            <option value="LTDA">LTDA</option>
+                            <option value="CONDOMINIO EDILICIO">CONDOMINIO EDILICIO</option>
+                            <option value="OUTROS">Outros</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            <div id="empresa" class="space-y-6">
-                <!-- CNAE -->
-                <div>
-                    <label for="cnae" class="block mb-2 font-semibold">CNAE? Utilize ";" para mais de uma
-                        opção.</label>
-                    <input type="text" id="cnae" v-model="formData.cnaes" class="w-full p-2 border rounded">
-                </div>
+            <div class="my-12"></div>
 
-                <!-- Natureza Jurídica -->
-                <div>
-                    <label for="natureza" class="block mb-2 font-semibold">Natureza Jurídica?</label>
-                    <select id="natureza" v-model="formData.naturezas" multiple class="w-full p-2 border rounded">
-                        <option value="ASSOCIACAO PRIVADA">ASSOCIACAO PRIVADA</option>
-                        <option value="MEI">MEI</option>
-                        <option value="ME">ME</option>
-                        <option value="LTDA">LTDA</option>
-                        <option value="CONDOMINIO EDILICIO">CONDOMINIO EDILICIO</option>
-                        <option value="OUTROS">Outros</option>
-                    </select>
+            <div id="form-gp2" class="flex justify-center items-center">
+                <!-- Loading -->
+                <div v-show="isLoading" class="text-blue-500 font-semibold">Carregando...</div>
+
+                <!-- Botões -->
+                <div class="flex justify-between space-x-4">
+                    <button type="button" @click="testDB"
+                        class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        Testar Conexão
+                    </button>
+
+                    <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                        Executar
+                    </button>
+
+                    <button type="button" @click="exportCSV"
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                        Exportar
+                    </button>
                 </div>
             </div>
-    </div>
-
-    <div class="my-12"></div>
-
-    <div id="form-gp2" class="flex justify-center items-center">
-        <!-- Loading -->
-        <div v-show="isLoading" class="text-blue-500 font-semibold">Carregando...</div>
-
-        <!-- Botões -->
-        <div class="flex justify-between space-x-4">
-            <button type="button" @click="testDB" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                Testar Conexão
-            </button>
-
-            <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-                Executar
-            </button>
-
-            <button type="button" @click="exportCSV" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
-                Exportar
-            </button>
-        </div>
-    </div>
-    </form>
+        </form>
     </div>
 
     <script>
