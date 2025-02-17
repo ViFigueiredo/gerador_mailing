@@ -94,18 +94,20 @@
 
                     <!-- Tipo de Telefone -->
                     <fieldset class="border p-4 rounded">
-                        <legend class="font-semibold">Tipo de Telefone?</legend>
-                        <div class="flex space-x-4 mt-2">
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" value="FIXA" v-model="formData.tiposTelefone"
-                                    class="form-checkbox">
-                                <span class="ml-2">Fixa</span>
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" value="CELULAR" v-model="formData.tiposTelefone"
-                                    class="form-checkbox">
-                                <span class="ml-2">Móvel</span>
-                            </label>
+                        <legend class="font-semibold">Repetição de número?</legend>
+                        <div class="card flex flex-wrap justify-center gap-4">
+                            <div class="flex items-center gap-2">
+                                <div class="">
+                                    <Checkbox v-model="formData.tiposTelefone" inputId="fixa" value="FIXO" />
+                                </div>
+                                <span>Fixa</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="">
+                                    <Checkbox v-model="formData.tiposTelefone" inputId="movel" value="CELULAR" />
+                                </div>
+                                <span>Móvel</span>
+                            </div>
                         </div>
                     </fieldset>
 
@@ -147,12 +149,14 @@
 
             <div class="my-12"></div>
 
-            <div id="form-gp2" class="flex justify-center items-center">
+            <div id="form-gp2" class="flex-col justify-center items-center text-center">
                 <!-- Loading -->
-                <div v-show="isLoading" class="text-blue-500 font-semibold">Carregando...</div>
+                <div v-show="isLoading" class="w-full text-blue-500 font-semibold mb-4">
+                    Carregando...
+                </div>
 
                 <!-- Botões -->
-                <div class="flex justify-between space-x-4">
+                <div class="flex justify-center space-x-4">
                     <button type="button" @click="testDB"
                         class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                         Testar Conexão
@@ -169,16 +173,23 @@
                 </div>
             </div>
         </form>
+
+        <div class="card">
+            <DataTable :value="dataTable" tableStyle="min-width: 50rem">
+                <Column field="cnpj_concatenado" header="CNPJ"></Column>
+                <Column field="RAZAO_SOCIAL" header="Razão Social"></Column>
+            </DataTable>
+        </div>
     </div>
 
     <script>
-        const { createApp, ref, reactive } = Vue;
+        const { createApp, ref, reactive, onMounted } = Vue;
 
         const app = createApp({
             setup() {
-
                 const isLoading = ref(false);
-
+                const dataTable = reactive([]);
+                ''
                 // Estado reativo
                 const formData = reactive({
                     estados: [],
@@ -218,9 +229,9 @@
                     console.log(body);
 
                     try {
-                        // const response = await axios.post('/executar', body);
-                        // console.log('Dados recebidos:', response.data);
-                        // localStorage.setItem('resultData', JSON.stringify(response.data));
+                        const response = await axios.post('/executar', body);
+                        console.log('Dados recebidos:', response.data);
+                        localStorage.setItem('resultData', JSON.stringify(response.data));
                     } catch (error) {
                         console.error('Erro na requisição:', error);
                     } finally {
@@ -237,10 +248,21 @@
                     finally { }
                 };
 
+
+
+                onMounted(() => {
+
+                    console.log('O componente foi montado!');
+
+                    dataTable.value = JSON.parse(localStorage.getItem('resultData'))
+
+                });
+
                 // Expor para o template
                 return {
                     isLoading,
                     formData,
+                    dataTable,
                     testDB,
                     executar,
                     exportCSV
@@ -254,8 +276,9 @@
             }
         });
 
+        app.component('DataTable', PrimeVue.DataTable);
+        app.component('Column', PrimeVue.Column);
         app.component('Checkbox', PrimeVue.Checkbox);
-
         app.mount('#app');
     </script>
 

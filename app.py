@@ -99,7 +99,7 @@ def executar_consulta():
         """
 
         # Cria uma nova conexão para cada consulta
-        with pyodbc.connect(f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={db_server};DATABASE={db_name};UID={db_username};PWD={db_password}') as conn:
+        with conn:
             cursor = conn.cursor()
             cursor.execute(queryVivo)
             rows = cursor.fetchall()  # Pega tudo do cursor
