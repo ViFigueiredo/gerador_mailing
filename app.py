@@ -1,8 +1,8 @@
-from flask import Flask, render_template, request, jsonify # type: ignore
+from flask import Flask, render_template, request, jsonify, send_file  # type: ignore
 from dotenv import load_dotenv # type: ignore
 import pyodbc # type: ignore
 import pandas as pd
-import os, json
+import os, json, io
 
 # Carrega as variáveis do arquivo .env
 load_dotenv()
@@ -30,7 +30,7 @@ def format_sql_list(values):
 def home():
     return render_template('index.html')
 
-@app.route('/test-db')
+@app.route('/test-db', methods=['GET'])
 def test_db():
     try:
         # realizar teste de conexão com o banco de dados
@@ -109,6 +109,71 @@ def executar_consulta():
                 columns = [column[0] for column in cursor.description]
                 result = [dict(zip(columns, row)) for row in rows]  # Cria uma lista de dicionários
                 return jsonify(result)  # Retorna a lista de dicionários como JSON
+            else:
+                return jsonify({'message': 'Nenhum registro encontrado.'}), 404
+    except json.JSONDecodeError as e:
+        return jsonify({"error": "Invalid JSON format", "details": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/exportar', methods=['POST'])
+def exportar_csv():
+    try:
+        if not request.is_json:
+            return jsonify({"error": "Missing JSON in request"}), 400
+        
+        dados = request.get_json()
+        required_fields = ['estado', 'cidade', 'repeticao', 'tipoTelefone', 'operadora']
+
+        for field in required_fields:
+            if field not in dados:
+                return jsonify({"error": f"Missing required field: {field}"}), 400   
+
+        estados = format_sql_list(dados.get('estado', []))
+        cidades = format_sql_list(dados.get('cidade', []))
+        repeticao = format_sql_list(dados.get('repeticao', []))
+        tipoTelefone = format_sql_list(dados.get('tipoTelefone', []))
+        operadoras = format_sql_list(dados.get('operadora', []))
+        cnaes = format_sql_list(dados.get('cnae', []))
+        naturezas = format_sql_list(dados.get('natureza', []))        
+
+        queryVivo = f"""
+        SELECT * FROM {table_name}
+        WHERE
+            TIPO_TEL IN {tipoTelefone}
+            AND CONTADORTEL IN {repeticao}
+            AND UF_ IN {estados}
+            AND CIDADE IN {cidades}
+            AND OPERADOR_ATIVO IN {operadoras}
+        """
+
+        queryOrigo = f"""
+        SELECT * FROM {table_name}
+        WHERE
+            TIPO_TEL IN {tipoTelefone}
+            AND CONTADORTEL IN {repeticao}
+            AND UF_ in {estados}
+            AND CIDADE in {cidades}
+            AND OPERADOR_ATIVO IN {operadoras}
+            AND CNAE_PRINCIPAL IN {cnaes}
+            AND NATUREZA_JURIDICA IN {naturezas}
+        """
+
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute(queryVivo)
+            rows = cursor.fetchall()              
+
+            if rows:
+                columns = [column[0] for column in cursor.description]
+                df = pd.DataFrame.from_records(rows, columns=columns)                
+
+                # Cria um buffer em memória para o CSV
+                output = io.StringIO()
+                df.to_csv(output, index=False)
+                output.seek(0)  # Volta para o início do buffer               
+
+                return send_file(output, mimetype='text/csv', as_attachment=True, download_name='dados.csv')
             else:
                 return jsonify({'message': 'Nenhum registro encontrado.'}), 404
     except json.JSONDecodeError as e:

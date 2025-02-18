@@ -9,8 +9,8 @@
 
 <body>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/primevue/umd/primevue.min.js"></script>
     <script src="https://unpkg.com/@primevue/themes/umd/aura.min.js"></script>
 
@@ -79,13 +79,13 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="">
-                                    <checkbox v-model="formData.repeticoes" inputId="check1" value="1" />
+                                    <checkbox v-model="formData.repeticoes" inputId="check2" value="2" />
                                 </div>
                                 <span>2</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="">
-                                    <checkbox v-model="formData.repeticoes" inputId="check1" value="1" />
+                                    <checkbox v-model="formData.repeticoes" inputId="check3" value="3" />
                                 </div>
                                 <span>3</span>
                             </div>
@@ -170,6 +170,11 @@
                         class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
                         Exportar
                     </button>
+
+                    <button type="button" @click="clear"
+                        class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">
+                        Limpar
+                    </button>
                 </div>
             </div>
         </form>
@@ -214,7 +219,6 @@
                 const testDB = async () => {
                     try {
                         const response = await axios.get('/test-db');
-                        console.log(response.data);
                         alert(response.data.message);
                     } catch (error) {
                         console.error('Erro na conexão:', error);
@@ -235,13 +239,23 @@
                         natureza: formData.naturezas
                     }
 
-                    // console.log(body);
+                    // const resultdata = localStorage.getItem('resultData');
+                    // const bodycsv = sessionStorage.getItem('bodycsv');
+
+                    // if (resultdata.length > 0 || bodycsv.length > 0) {
+                    //     alert('Primeiro limpe o histórico das consultas!')
+                    // }
 
                     try {
-                        const response = await axios.post('/executar', body);
-                        // console.log('Dados recebidos:', response.data);
-                        localStorage.setItem('resultData', JSON.stringify(response.data));
-                        dataTable.value = response.data;
+                        if (body.estado.length === 0 && body.cidade.length === 0 && body.repeticao.length === 0 && body.tipoTelefone.length === 0 && body.operadora.length > 0) {
+                            alert('Preencha todos os campos!');
+                        } else {
+                            const response = await axios.post('/executar', body);
+
+                            localStorage.setItem('resultData', JSON.stringify(response.data));
+                            sessionStorage.setItem('bodycsv', JSON.stringify(body))
+                            dataTable.value = response.data;
+                        }
                     } catch (error) {
                         console.error('Erro na requisição:', error);
                     } finally {
@@ -251,17 +265,61 @@
 
                 const exportCSV = async (event) => {
                     event.preventDefault();
-                    isLoading.value = true;
 
-                    try { }
-                    catch (error) { }
-                    finally { }
+                    const jsonData = JSON.parse(sessionStorage.getItem('bodycsv'));
+                    if (jsonData) {
+                        isLoading.value = true;
+                        console.log(jsonData);
+                    } else {
+                        alert('Primeiro precisa executar a consulta!')
+                    }
+
+                    try {
+                        // const response = await fetch('/exportar', {
+                        //     method: 'POST',
+                        //     headers: {
+                        //         'Content-Type': 'application/json'
+                        //     },
+                        //     body: JSON.stringify(jsonData)
+                        // });
+
+                        // if (response.ok) {
+                        //     const blob = await response.blob();
+                        //     const url = window.URL.createObjectURL(blob);
+                        //     const a = document.createElement('a');
+
+                        //     a.style.display = 'none';
+                        //     a.href = url;
+                        //     a.download = 'dados.csv';
+                        //     document.body.appendChild(a);
+                        //     a.click();
+                        //     window.URL.revokeObjectURL(url);
+                        //     isLoading.value = false;
+                        // } else {
+                        //     throw new Error('Erro ao exportar CSV');
+                        // }
+                    } catch (error) {
+                        console.error('Erro:', error);
+                    }
                 };
 
-                onMounted(() => {
-                    const storedData = localStorage.getItem('resultData');
+                const clear = async (event) => {
+                    event.preventDefault();
+                    isLoading.value = true;
+                    const result = confirm('Limpar histórico?')
 
-                    if (storedData) {
+                    if (result) {
+                        localStorage.removeItem('resultData')
+                        sessionStorage.removeItem('bodycsv')
+                        alert('Concluído!')
+                        isLoading.value = false;
+                    }
+                }
+
+                onMounted(() => {
+                    const storedData = localStorage.getItem('resultData') || null;
+
+                    if (storedData !== null) {
                         dataTable.value = JSON.parse(storedData).slice(0, 5);
                     }
                 });
@@ -272,6 +330,7 @@
                     formData,
                     dataTable,
                     headers,
+                    clear,
                     testDB,
                     executar,
                     exportCSV
@@ -286,4 +345,5 @@
         app.mount('#app');
     </script>
 </body>
+
 </html>
