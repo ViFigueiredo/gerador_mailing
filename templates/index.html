@@ -73,19 +73,19 @@
                         <div class="card flex flex-wrap justify-center gap-4">
                             <div class="flex items-center gap-2">
                                 <div class="">
-                                    <Checkbox v-model="formData.repeticoes" inputId="check1" value="1" />
+                                    <checkbox v-model="formData.repeticoes" inputId="check1" value="1" />
                                 </div>
                                 <span>1</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="">
-                                    <Checkbox v-model="formData.repeticoes" inputId="check2" value="2" />
+                                    <checkbox v-model="formData.repeticoes" inputId="check1" value="1" />
                                 </div>
                                 <span>2</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="">
-                                    <Checkbox v-model="formData.repeticoes" inputId="check3" value="3" />
+                                    <checkbox v-model="formData.repeticoes" inputId="check1" value="1" />
                                 </div>
                                 <span>3</span>
                             </div>
@@ -94,7 +94,7 @@
 
                     <!-- Tipo de Telefone -->
                     <fieldset class="border p-4 rounded">
-                        <legend class="font-semibold">Repetição de número?</legend>
+                        <legend class="font-semibold">Tipo de telefone?</legend>
                         <div class="card flex flex-wrap justify-center gap-4">
                             <div class="flex items-center gap-2">
                                 <div class="">
@@ -174,11 +174,16 @@
             </div>
         </form>
 
-        <div class="card">
-            <DataTable :value="dataTable" tableStyle="min-width: 50rem">
-                <Column field="cnpj_concatenado" header="CNPJ"></Column>
-                <Column field="RAZAO_SOCIAL" header="Razão Social"></Column>
-            </DataTable>
+        <div class="my-5"></div>
+
+        <div class="w-full mb-12 flex justify-center">
+            <div class="card w-[80%]">
+                <datatable :value="dataTable" tableStyle="min-width: 50rem">
+                    <template v-for="(header, index) in headers" :key="index">
+                        <column :field="header" :header="header"></column>
+                    </template>
+                </datatable>
+            </div>
         </div>
     </div>
 
@@ -188,8 +193,12 @@
         const app = createApp({
             setup() {
                 const isLoading = ref(false);
-                const dataTable = reactive([]);
-                ''
+                const dataTable = ref([]); // Use ref para reatividade
+
+                const headers = ref([
+                    "BAIRRO", "CAPITAL_SOCIAL", "CEP", "CIDADE", "CNAE_PRINCIPAL", "CONTADORTEL", "DATA_PORT", "ENDERECO", "NATUREZA_JURIDICA", "NOME_FANTASIA", "NOME_SOCIO_RAZAO_SOCIAL", "NUMERO", "OPCAO_MEI", "OPERADOR_ATIVO", "OPER_ORIG_CEL", "OPER_ORIG_FIXO", "OPER_PORT", "RAZAO_SOCIAL", "SITUACAO_CADASTRAL", "TELEFONE", "TIPO_TEL", "UF_", "cnpj_concatenado"
+                ]);
+
                 // Estado reativo
                 const formData = reactive({
                     estados: [],
@@ -226,12 +235,13 @@
                         natureza: formData.naturezas
                     }
 
-                    console.log(body);
+                    // console.log(body);
 
                     try {
                         const response = await axios.post('/executar', body);
-                        console.log('Dados recebidos:', response.data);
+                        // console.log('Dados recebidos:', response.data);
                         localStorage.setItem('resultData', JSON.stringify(response.data));
+                        dataTable.value = response.data;
                     } catch (error) {
                         console.error('Erro na requisição:', error);
                     } finally {
@@ -248,14 +258,12 @@
                     finally { }
                 };
 
-
-
                 onMounted(() => {
+                    const storedData = localStorage.getItem('resultData');
 
-                    console.log('O componente foi montado!');
-
-                    dataTable.value = JSON.parse(localStorage.getItem('resultData'))
-
+                    if (storedData) {
+                        dataTable.value = JSON.parse(storedData).slice(0, 5);
+                    }
                 });
 
                 // Expor para o template
@@ -263,6 +271,7 @@
                     isLoading,
                     formData,
                     dataTable,
+                    headers,
                     testDB,
                     executar,
                     exportCSV
@@ -270,18 +279,11 @@
             }
         })
 
-        app.use(PrimeVue.Config, {
-            theme: {
-                preset: PrimeVue.Themes.Aura
-            }
-        });
-
-        app.component('DataTable', PrimeVue.DataTable);
-        app.component('Column', PrimeVue.Column);
-        app.component('Checkbox', PrimeVue.Checkbox);
+        app.use(PrimeVue.Config, { theme: { preset: PrimeVue.Themes.Aura } });
+        app.component('datatable', PrimeVue.DataTable);
+        app.component('column', PrimeVue.Column);
+        app.component('checkbox', PrimeVue.Checkbox);
         app.mount('#app');
     </script>
-
 </body>
-
 </html>
