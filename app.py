@@ -77,32 +77,34 @@ def executar_consulta():
         cnaes = format_sql_list(dados.get('cnae', []))
         naturezas = format_sql_list(dados.get('natureza', []))
         
-        queryVivo = f"""
-        SELECT * FROM {table_name}
-        WHERE
-            TIPO_TEL IN {tipoTelefone}
-            AND CONTADORTEL IN {repeticao}
-            AND UF_ IN {estados}
-            AND CIDADE IN {cidades}
-            AND OPERADOR_ATIVO IN {operadoras}
-        """
-        
-        queryOrigo = f"""
-        SELECT * FROM {table_name}
-        WHERE
-            TIPO_TEL IN {tipoTelefone}
-            AND CONTADORTEL IN {repeticao}
-            AND UF_ in {estados}
-            AND CIDADE in {cidades}
-            AND OPERADOR_ATIVO IN {operadoras}
-            AND CNAE_PRINCIPAL IN {cnaes}
-            AND NATUREZA_JURIDICA IN {naturezas}
-        """
+        # se conteudo de cnaes e naturezas for vazio
+        if not cnaes and not naturezas:
+            query = f"""
+            SELECT top 1 * FROM {table_name}
+            WHERE
+                TIPO_TEL IN {tipoTelefone}
+                AND CONTADORTEL IN {repeticao}
+                AND UF_ IN {estados}
+                AND CIDADE IN {cidades}
+                AND OPERADOR_ATIVO IN {operadoras}
+            """
+        else:
+            query = f"""
+            SELECT top 1 * FROM {table_name}
+            WHERE
+                TIPO_TEL IN {tipoTelefone}
+                AND CONTADORTEL IN {repeticao}
+                AND UF_ in {estados}
+                AND CIDADE in {cidades}
+                AND OPERADOR_ATIVO IN {operadoras}
+                AND CNAE_PRINCIPAL IN {cnaes}
+                AND NATUREZA_JURIDICA IN {naturezas}
+            """
 
         # Cria uma nova conexão para cada consulta
         with conn:
             cursor = conn.cursor()
-            cursor.execute(queryVivo)
+            cursor.execute(query)
             rows = cursor.fetchall()  # Pega tudo do cursor
             
             if rows:
