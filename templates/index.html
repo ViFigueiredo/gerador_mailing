@@ -226,7 +226,8 @@
                         const response = await axios.get('/test-db');
                         alert(response.data.message);
                     } catch (error) {
-                        console.error('Erro na conexão:', error);
+                        // console.error('Erro na conexão:', error);
+                        alert('Erro na conexão!');
                     }
                 };
 
@@ -256,13 +257,13 @@
                             alert('Preencha todos os campos!');
                         } else {
                             const response = await axios.post('/executar', body);
-
                             localStorage.setItem('resultData', JSON.stringify(response.data));
                             sessionStorage.setItem('bodycsv', JSON.stringify(body))
                             dataTable.value = response.data;
                         }
                     } catch (error) {
-                        console.error('Erro na requisição:', error);
+                        alert('Erro na requisição!');
+                        // console.error('Erro na requisição:', error);
                     } finally {
                         isLoading.value = false;
                     }
@@ -270,15 +271,13 @@
 
                 const exportCSV = async (event) => {
                     event.preventDefault();
-
                     const jsonData = JSON.parse(localStorage.getItem('resultData'));
 
                     if (jsonData) {
                         isLoading.value = true;
-                        console.log('Dados a serem enviados:', jsonData);
+                        // console.log('Dados a serem enviados:', jsonData);
                     } else {
-                        alert('Primeiro precisa executar a consulta!');
-                        return; // Adiciona um return para evitar continuar se jsonData for nulo
+                        return alert('Primeiro precisa executar a consulta!');
                     }
 
                     try {
@@ -304,28 +303,24 @@
                             isLoading.value = false; // Atualiza o estado de loading
                         } else {
                             const errorData = await response.json(); // Captura a resposta de erro
-                            console.error('Erro ao exportar:', errorData);
-                            alert('Erro ao exportar os dados: ' + errorData.error);
+                            // console.error('Erro ao exportar:', errorData);
+                            alert('Erro ao exportar os dados!');
                             isLoading.value = false; // Atualiza o estado de loading
                         }
                     } catch (error) {
-                        console.error('Erro:', error);
+                        alert('Erro!');
+                        // console.error('Erro:', error);
                         isLoading.value = false; // Atualiza o estado de loading
                     }
                 };
 
                 const exportXLSX = async (event) => {
                     event.preventDefault();
-
                     const jsonData = JSON.parse(localStorage.getItem('resultData'));
 
-                    if (jsonData) {
-                        isLoading.value = true;
-                        console.log('Dados a serem enviados:', jsonData);
-                    } else {
-                        alert('Primeiro precisa executar a consulta!');
-                        return; // Adiciona um return para evitar continuar se jsonData for nulo
-                    }
+                    if (!jsonData) return alert('Primeiro precisa executar a consulta!');
+                    isLoading.value = true;
+                    // console.log('Dados a serem enviados:', jsonData);
 
                     try {
                         const response = await fetch('/exportar-xlsx', {
@@ -350,12 +345,13 @@
                             isLoading.value = false; // Atualiza o estado de loading
                         } else {
                             const errorData = await response.json(); // Captura a resposta de erro
-                            console.error('Erro ao exportar:', errorData);
-                            alert('Erro ao exportar os dados: ' + errorData.error);
+                            // console.error('Erro ao exportar:', errorData);
+                            alert('Erro ao exportar os dados!');
                             isLoading.value = false; // Atualiza o estado de loading
                         }
                     } catch (error) {
-                        console.error('Erro:', error);
+                        alert('Erro interno!');
+                        // console.error('Erro:', error);
                         isLoading.value = false; // Atualiza o estado de loading
                     }
                 };
@@ -375,10 +371,7 @@
 
                 onMounted(() => {
                     const storedData = localStorage.getItem('resultData') || null;
-
-                    if (storedData !== null) {
-                        dataTable.value = JSON.parse(storedData).slice(0, 5);
-                    }
+                    if (storedData !== null) dataTable.value = JSON.parse(storedData).slice(0, 20);
                 });
 
                 // Expor para o template
