@@ -78,7 +78,7 @@ def executar_consulta():
         naturezas = format_sql_list(dados.get('natureza', []))
         
         queryVivo = f"""
-        SELECT TOP 2 * FROM {table_name}
+        SELECT * FROM {table_name}
         WHERE
             TIPO_TEL IN {tipoTelefone}
             AND CONTADORTEL IN {repeticao}
