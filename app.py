@@ -1,8 +1,9 @@
+import pyodbc # type: ignore
+import os, json, io
 from flask import Flask, render_template, request, jsonify, send_file  # type: ignore
 from dotenv import load_dotenv # type: ignore
-import pyodbc # type: ignore
+# from pandas import json_normalize
 import pandas as pd
-import os, json, io
 
 # Carrega as variáveis do arquivo .env
 load_dotenv()
@@ -77,7 +78,7 @@ def executar_consulta():
         naturezas = format_sql_list(dados.get('natureza', []))
         
         queryVivo = f"""
-        SELECT * FROM {table_name}
+        SELECT TOP 2 * FROM {table_name}
         WHERE
             TIPO_TEL IN {tipoTelefone}
             AND CONTADORTEL IN {repeticao}
@@ -116,66 +117,59 @@ def executar_consulta():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-@app.route('/exportar', methods=['POST'])
+@app.route('/exportar-csv', methods=['POST'])
 def exportar_csv():
     try:
         if not request.is_json:
             return jsonify({"error": "Missing JSON in request"}), 400
-        
+
         dados = request.get_json()
-        required_fields = ['estado', 'cidade', 'repeticao', 'tipoTelefone', 'operadora']
+        print('Dados recebidos:', dados)
 
-        for field in required_fields:
-            if field not in dados:
-                return jsonify({"error": f"Missing required field: {field}"}), 400   
+        if not isinstance(dados, list):
+            return jsonify({"error": "Expected a list of records"}), 400
 
-        estados = format_sql_list(dados.get('estado', []))
-        cidades = format_sql_list(dados.get('cidade', []))
-        repeticao = format_sql_list(dados.get('repeticao', []))
-        tipoTelefone = format_sql_list(dados.get('tipoTelefone', []))
-        operadoras = format_sql_list(dados.get('operadora', []))
-        cnaes = format_sql_list(dados.get('cnae', []))
-        naturezas = format_sql_list(dados.get('natureza', []))        
+        # Cria um DataFrame a partir do JSON recebido
+        df = pd.DataFrame(dados)
 
-        queryVivo = f"""
-        SELECT * FROM {table_name}
-        WHERE
-            TIPO_TEL IN {tipoTelefone}
-            AND CONTADORTEL IN {repeticao}
-            AND UF_ IN {estados}
-            AND CIDADE IN {cidades}
-            AND OPERADOR_ATIVO IN {operadoras}
-        """
+        if df.empty:
+            return jsonify({"error": "DataFrame is empty. Check the input data."}), 400
 
-        queryOrigo = f"""
-        SELECT * FROM {table_name}
-        WHERE
-            TIPO_TEL IN {tipoTelefone}
-            AND CONTADORTEL IN {repeticao}
-            AND UF_ in {estados}
-            AND CIDADE in {cidades}
-            AND OPERADOR_ATIVO IN {operadoras}
-            AND CNAE_PRINCIPAL IN {cnaes}
-            AND NATUREZA_JURIDICA IN {naturezas}
-        """
+        output = io.BytesIO()
+        df.to_csv(output, index=False, sep=';', encoding='utf-8', header=True)
+        output.seek(0)
 
-        with conn:
-            cursor = conn.cursor()
-            cursor.execute(queryVivo)
-            rows = cursor.fetchall()              
+        return send_file(output, mimetype='text/csv', as_attachment=True, download_name='mailing.csv')
+    except json.JSONDecodeError as e:
+        return jsonify({"error": "Invalid JSON format", "details": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-            if rows:
-                columns = [column[0] for column in cursor.description]
-                df = pd.DataFrame.from_records(rows, columns=columns)                
+@app.route('/exportar-xlsx', methods=['POST'])
+def exportar_xlsx():
+    try:
+        if not request.is_json:
+            return jsonify({"error": "Missing JSON in request"}), 400
 
-                # Cria um buffer em memória para o CSV
-                output = io.StringIO()
-                df.to_csv(output, index=False)
-                output.seek(0)  # Volta para o início do buffer               
+        dados = request.get_json()
+        print('Dados recebidos:', dados)
 
-                return send_file(output, mimetype='text/csv', as_attachment=True, download_name='dados.csv')
-            else:
-                return jsonify({'message': 'Nenhum registro encontrado.'}), 404
+        if not isinstance(dados, list):
+            return jsonify({"error": "Expected a list of records"}), 400
+
+        # Cria um DataFrame a partir do JSON recebido
+        df = pd.DataFrame(dados)
+
+        if df.empty:
+            return jsonify({"error": "DataFrame is empty. Check the input data."}), 400
+
+        # Cria um buffer em memória para o arquivo Excel
+        output = io.BytesIO()
+        # Exporta o DataFrame para um arquivo Excel
+        df.to_excel(output, index=False, engine='openpyxl')  # Usando openpyxl como engine
+        output.seek(0)
+
+        return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', as_attachment=True, download_name='mailing.xlsx')
     except json.JSONDecodeError as e:
         return jsonify({"error": "Invalid JSON format", "details": str(e)}), 400
     except Exception as e:

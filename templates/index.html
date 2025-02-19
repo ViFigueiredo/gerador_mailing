@@ -168,7 +168,12 @@
 
                     <button type="button" @click="exportCSV"
                         class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
-                        Exportar
+                        Exportar CSV
+                    </button>
+
+                    <button type="button" @click="exportXLSX"
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                        Exportar XLSX
                     </button>
 
                     <button type="button" @click="clear"
@@ -266,40 +271,92 @@
                 const exportCSV = async (event) => {
                     event.preventDefault();
 
-                    const jsonData = JSON.parse(sessionStorage.getItem('bodycsv'));
+                    const jsonData = JSON.parse(localStorage.getItem('resultData'));
+
                     if (jsonData) {
                         isLoading.value = true;
-                        console.log(jsonData);
+                        console.log('Dados a serem enviados:', jsonData);
                     } else {
-                        alert('Primeiro precisa executar a consulta!')
+                        alert('Primeiro precisa executar a consulta!');
+                        return; // Adiciona um return para evitar continuar se jsonData for nulo
                     }
 
                     try {
-                        // const response = await fetch('/exportar', {
-                        //     method: 'POST',
-                        //     headers: {
-                        //         'Content-Type': 'application/json'
-                        //     },
-                        //     body: JSON.stringify(jsonData)
-                        // });
+                        const response = await fetch('/exportar-csv', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(jsonData) // Envia jsonData diretamente
+                        });
 
-                        // if (response.ok) {
-                        //     const blob = await response.blob();
-                        //     const url = window.URL.createObjectURL(blob);
-                        //     const a = document.createElement('a');
-
-                        //     a.style.display = 'none';
-                        //     a.href = url;
-                        //     a.download = 'dados.csv';
-                        //     document.body.appendChild(a);
-                        //     a.click();
-                        //     window.URL.revokeObjectURL(url);
-                        //     isLoading.value = false;
-                        // } else {
-                        //     throw new Error('Erro ao exportar CSV');
-                        // }
+                        if (response.ok) {
+                            // Cria um blob a partir da resposta
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'mailing.csv'; // Nome do arquivo que será baixado
+                            document.body.appendChild(a);
+                            a.click(); // Simula o clique para iniciar o download
+                            a.remove(); // Remove o link do DOM
+                            window.URL.revokeObjectURL(url); // Libera a URL do blob
+                            isLoading.value = false; // Atualiza o estado de loading
+                        } else {
+                            const errorData = await response.json(); // Captura a resposta de erro
+                            console.error('Erro ao exportar:', errorData);
+                            alert('Erro ao exportar os dados: ' + errorData.error);
+                            isLoading.value = false; // Atualiza o estado de loading
+                        }
                     } catch (error) {
                         console.error('Erro:', error);
+                        isLoading.value = false; // Atualiza o estado de loading
+                    }
+                };
+
+                const exportXLSX = async (event) => {
+                    event.preventDefault();
+
+                    const jsonData = JSON.parse(localStorage.getItem('resultData'));
+
+                    if (jsonData) {
+                        isLoading.value = true;
+                        console.log('Dados a serem enviados:', jsonData);
+                    } else {
+                        alert('Primeiro precisa executar a consulta!');
+                        return; // Adiciona um return para evitar continuar se jsonData for nulo
+                    }
+
+                    try {
+                        const response = await fetch('/exportar-xlsx', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(jsonData) // Envia jsonData diretamente
+                        });
+
+                        if (response.ok) {
+                            // Cria um blob a partir da resposta
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'mailing.xlsx'; // Nome do arquivo que será baixado
+                            document.body.appendChild(a);
+                            a.click(); // Simula o clique para iniciar o download
+                            a.remove(); // Remove o link do DOM
+                            window.URL.revokeObjectURL(url); // Libera a URL do blob
+                            isLoading.value = false; // Atualiza o estado de loading
+                        } else {
+                            const errorData = await response.json(); // Captura a resposta de erro
+                            console.error('Erro ao exportar:', errorData);
+                            alert('Erro ao exportar os dados: ' + errorData.error);
+                            isLoading.value = false; // Atualiza o estado de loading
+                        }
+                    } catch (error) {
+                        console.error('Erro:', error);
+                        isLoading.value = false; // Atualiza o estado de loading
                     }
                 };
 
@@ -333,7 +390,8 @@
                     clear,
                     testDB,
                     executar,
-                    exportCSV
+                    exportCSV,
+                    exportXLSX
                 };
             }
         })
