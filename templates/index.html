@@ -162,10 +162,6 @@
                         Testar Conexão
                     </button>
 
-                    <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-                        Executar
-                    </button>
-
                     <button type="button" @click="exportCSV"
                         class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
                         Exportar CSV
@@ -183,18 +179,6 @@
                 </div>
             </div>
         </form>
-
-        <div class="my-5"></div>
-
-        <div class="w-full mb-12 flex justify-center">
-            <div class="card w-[80%]">
-                <datatable :value="dataTable" tableStyle="min-width: 50rem">
-                    <template v-for="(header, index) in headers" :key="index">
-                        <column :field="header" :header="header"></column>
-                    </template>
-                </datatable>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -203,11 +187,6 @@
         const app = createApp({
             setup() {
                 const isLoading = ref(false);
-                const dataTable = ref([]); // Use ref para reatividade
-
-                const headers = ref([
-                    "BAIRRO", "CAPITAL_SOCIAL", "CEP", "CIDADE", "CNAE_PRINCIPAL", "CONTADORTEL", "DATA_PORT", "ENDERECO", "NATUREZA_JURIDICA", "NOME_FANTASIA", "NOME_SOCIO_RAZAO_SOCIAL", "NUMERO", "OPCAO_MEI", "OPERADOR_ATIVO", "OPER_ORIG_CEL", "OPER_ORIG_FIXO", "OPER_PORT", "RAZAO_SOCIAL", "SITUACAO_CADASTRAL", "TELEFONE", "TIPO_TEL", "UF_", "cnpj_concatenado"
-                ]);
 
                 // Estado reativo
                 const formData = reactive({
@@ -231,10 +210,7 @@
                     }
                 };
 
-                const executar = async (event) => {
-                    event.preventDefault();
-                    isLoading.value = true;
-
+                const executar = async () => {
                     const body = {
                         estado: formData.estados,
                         cidade: formData.cidades.split(';').filter(Boolean),
@@ -243,41 +219,31 @@
                         operadora: formData.operadoras,
                         cnae: formData.cnaes.split(';').filter(Boolean),
                         natureza: formData.naturezas
-                    }
-
-                    // const resultdata = localStorage.getItem('resultData');
-                    // const bodycsv = sessionStorage.getItem('bodycsv');
-
-                    // if (resultdata.length > 0 || bodycsv.length > 0) {
-                    //     alert('Primeiro limpe o histórico das consultas!')
-                    // }
+                    };
 
                     try {
                         if (body.estado.length === 0 && body.cidade.length === 0 && body.repeticao.length === 0 && body.tipoTelefone.length === 0 && body.operadora.length > 0) {
                             alert('Preencha todos os campos!');
+                            return null; // Retorna null se os campos não estiverem preenchidos
                         } else {
                             const response = await axios.post('/executar', body);
-                            localStorage.setItem('resultData', JSON.stringify(response.data));
-                            sessionStorage.setItem('bodycsv', JSON.stringify(body))
-                            dataTable.value = response.data;
+                            return response.data; // Retorna os dados da resposta
                         }
                     } catch (error) {
                         alert('Erro na requisição!');
-                        // console.error('Erro na requisição:', error);
-                    } finally {
-                        isLoading.value = false;
+                        console.error('Erro na requisição:', error);
+                        return null; // Retorna null em caso de erro
                     }
                 };
 
                 const exportCSV = async (event) => {
                     event.preventDefault();
-                    const jsonData = JSON.parse(localStorage.getItem('resultData'));
+                    isLoading.value = true; // Inicia o loading
 
-                    if (jsonData) {
-                        isLoading.value = true;
-                        // console.log('Dados a serem enviados:', jsonData);
-                    } else {
-                        return alert('Primeiro precisa executar a consulta!');
+                    const mailing = await executar();
+                    if (!mailing) {
+                        isLoading.value = false; // Para o loading se não houver dados
+                        return; // Retorna se não houver dados
                     }
 
                     try {
@@ -286,41 +252,41 @@
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify(jsonData) // Envia jsonData diretamente
+                            body: JSON.stringify(mailing) // Converte para JSON
                         });
 
                         if (response.ok) {
-                            // Cria um blob a partir da resposta
                             const blob = await response.blob();
                             const url = window.URL.createObjectURL(blob);
                             const a = document.createElement('a');
                             a.href = url;
-                            a.download = 'mailing.csv'; // Nome do arquivo que será baixado
+                            a.download = 'mailing.csv';
                             document.body.appendChild(a);
-                            a.click(); // Simula o clique para iniciar o download
-                            a.remove(); // Remove o link do DOM
-                            window.URL.revokeObjectURL(url); // Libera a URL do blob
-                            isLoading.value = false; // Atualiza o estado de loading
+                            a.click();
+                            a.remove();
+                            window.URL.revokeObjectURL(url);
                         } else {
-                            const errorData = await response.json(); // Captura a resposta de erro
-                            // console.error('Erro ao exportar:', errorData);
+                            const errorData = await response.json();
                             alert('Erro ao exportar os dados!');
-                            isLoading.value = false; // Atualiza o estado de loading
+                            console.error('Erro ao exportar:', errorData);
                         }
                     } catch (error) {
                         alert('Erro!');
-                        // console.error('Erro:', error);
-                        isLoading.value = false; // Atualiza o estado de loading
+                        console.error('Erro:', error);
+                    } finally {
+                        isLoading.value = false; // Para o loading
                     }
                 };
 
                 const exportXLSX = async (event) => {
                     event.preventDefault();
-                    const jsonData = JSON.parse(localStorage.getItem('resultData'));
+                    isLoading.value = true; // Inicia o loading
 
-                    if (!jsonData) return alert('Primeiro precisa executar a consulta!');
-                    isLoading.value = true;
-                    // console.log('Dados a serem enviados:', jsonData);
+                    const mailing = await executar();
+                    if (!mailing) {
+                        isLoading.value = false; // Para o loading se não houver dados
+                        return; // Retorna se não houver dados
+                    }
 
                     try {
                         const response = await fetch('/exportar-xlsx', {
@@ -328,58 +294,42 @@
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify(jsonData) // Envia jsonData diretamente
+                            body: JSON.stringify(mailing) // Converte para JSON
                         });
 
                         if (response.ok) {
-                            // Cria um blob a partir da resposta
                             const blob = await response.blob();
                             const url = window.URL.createObjectURL(blob);
                             const a = document.createElement('a');
                             a.href = url;
-                            a.download = 'mailing.xlsx'; // Nome do arquivo que será baixado
+                            a.download = 'mailing.xlsx';
                             document.body.appendChild(a);
-                            a.click(); // Simula o clique para iniciar o download
-                            a.remove(); // Remove o link do DOM
-                            window.URL.revokeObjectURL(url); // Libera a URL do blob
-                            isLoading.value = false; // Atualiza o estado de loading
+                            a.click();
+                            a.remove();
+                            window.URL.revokeObjectURL(url);
                         } else {
-                            const errorData = await response.json(); // Captura a resposta de erro
-                            // console.error('Erro ao exportar:', errorData);
+                            const errorData = await response.json();
                             alert('Erro ao exportar os dados!');
-                            isLoading.value = false; // Atualiza o estado de loading
+                            console.error('Erro ao exportar:', errorData);
                         }
                     } catch (error) {
-                        alert('Erro interno!');
-                        // console.error('Erro:', error);
-                        isLoading.value = false; // Atualiza o estado de loading
+                        alert('Erro!');
+                        console.error('Erro:', error);
+                    } finally {
+                        isLoading.value = false; // Para o loading
                     }
                 };
 
+
                 const clear = async (event) => {
                     event.preventDefault();
-                    isLoading.value = true;
-                    const result = confirm('Limpar histórico?')
-
-                    if (result) {
-                        localStorage.removeItem('resultData')
-                        sessionStorage.removeItem('bodycsv')
-                        alert('Concluído!')
-                        isLoading.value = false;
-                    }
+                    window.location.reload();
                 }
-
-                onMounted(() => {
-                    const storedData = localStorage.getItem('resultData') || null;
-                    if (storedData !== null) dataTable.value = JSON.parse(storedData).slice(0, 20);
-                });
 
                 // Expor para o template
                 return {
                     isLoading,
                     formData,
-                    dataTable,
-                    headers,
                     clear,
                     testDB,
                     executar,
@@ -390,8 +340,6 @@
         })
 
         app.use(PrimeVue.Config, { theme: { preset: PrimeVue.Themes.Aura } });
-        app.component('datatable', PrimeVue.DataTable);
-        app.component('column', PrimeVue.Column);
         app.component('checkbox', PrimeVue.Checkbox);
         app.mount('#app');
     </script>

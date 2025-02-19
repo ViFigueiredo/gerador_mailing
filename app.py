@@ -124,7 +124,7 @@ def exportar_csv():
             return jsonify({"error": "Missing JSON in request"}), 400
 
         dados = request.get_json()
-        print('Dados recebidos:', dados)
+        # print('Dados recebidos:', dados)
 
         if not isinstance(dados, list):
             return jsonify({"error": "Expected a list of records"}), 400
@@ -152,7 +152,7 @@ def exportar_xlsx():
             return jsonify({"error": "Missing JSON in request"}), 400
 
         dados = request.get_json()
-        print('Dados recebidos:', dados)
+        # print('Dados recebidos:', dados)
 
         if not isinstance(dados, list):
             return jsonify({"error": "Expected a list of records"}), 400
