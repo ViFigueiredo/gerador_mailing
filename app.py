@@ -18,13 +18,14 @@ db_name = os.getenv('db_name')
 db_username = os.getenv('db_username')
 db_password = os.getenv('db_password')
 table_name = os.getenv('table_name')
+print(table_name)
 
 conn = pyodbc.connect(f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={db_server}\\{db_instance},{db_port};DATABASE={db_name};UID={db_username};PWD={db_password};Trusted_Connection=no;')
 
 # Função para formatar listas para SQL
 def format_sql_list(values):
     if not values:
-        return "NULL"
+        return ""  # Retorna uma string vazia se a lista estiver vazia
     return f"({', '.join(f'''{repr(str(v))}''' for v in values)})"
 
 @app.route('/')
@@ -51,7 +52,10 @@ def executar_consulta():
         if not request.is_json:
             return jsonify({"error": "Missing JSON in request"}), 400            
 
-        dados = request.get_json()        
+        dados = request.get_json()
+
+        # dados recebidos da requisição
+        print("[IN]REQUISIÇÃO:", dados)
 
         # Add validation for required fields
         required_fields = ['estado', 'cidade', 'repeticao', 'tipoTelefone', 'operadora']
@@ -66,7 +70,12 @@ def executar_consulta():
         tipoTelefone = dados.get('tipoTelefone', [])
         operadoras = dados.get('operadora', [])
         cnaes = dados.get('cnae', [])
-        naturezas = dados.get('natureza', [])        
+        naturezas = dados.get('natureza', [])
+
+        descanso = '2'
+
+        if not estados or not cidades or not repeticao or not tipoTelefone or not operadoras:
+            return jsonify({"error": "One or more required fields are empty."}), 400
         
         # Formata cada parâmetro
         estados = format_sql_list(dados.get('estado', []))
@@ -80,7 +89,7 @@ def executar_consulta():
         # se conteudo de cnaes e naturezas for vazio
         if not cnaes and not naturezas:
             query = f"""
-            SELECT top 1 * FROM {table_name}
+            SELECT TOP 1 * FROM {table_name}
             WHERE
                 TIPO_TEL IN {tipoTelefone}
                 AND CONTADORTEL IN {repeticao}
@@ -90,16 +99,19 @@ def executar_consulta():
             """
         else:
             query = f"""
-            SELECT top 1 * FROM {table_name}
+            SELECT TOP 1 * FROM {table_name}
             WHERE
                 TIPO_TEL IN {tipoTelefone}
                 AND CONTADORTEL IN {repeticao}
-                AND UF_ in {estados}
-                AND CIDADE in {cidades}
+                AND UF_ IN {estados}
+                AND CIDADE IN {cidades}
                 AND OPERADOR_ATIVO IN {operadoras}
                 AND CNAE_PRINCIPAL IN {cnaes}
                 AND NATUREZA_JURIDICA IN {naturezas}
             """
+
+        # Exibir a consulta SQL gerada
+        print("Consulta SQL:", query)
 
         # Cria uma nova conexão para cada consulta
         with conn:
@@ -113,7 +125,7 @@ def executar_consulta():
                 result = [dict(zip(columns, row)) for row in rows]  # Cria uma lista de dicionários
                 return jsonify(result)  # Retorna a lista de dicionários como JSON
             else:
-                return jsonify({'message': 'Nenhum registro encontrado.'}), 404
+                return jsonify({'message': '[Exec] Sem registros.'}), 404
     except json.JSONDecodeError as e:
         return jsonify({"error": "Invalid JSON format", "details": str(e)}), 400
     except Exception as e:
