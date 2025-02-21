@@ -64,7 +64,6 @@ def executar_consulta():
                 return jsonify({"error": f"Missing required field: {field}"}), 400    
 
         # Extrai parâmetros do objeto dados
-        descanso = dados.get('descanso', [])
         estados = dados.get('estado', [])
         cidades = dados.get('cidade', [])
         repeticao = dados.get('repeticao', [])
@@ -72,20 +71,20 @@ def executar_consulta():
         operadoras = dados.get('operadora', [])
         cnaes = dados.get('cnae', [])
         naturezas = dados.get('natureza', [])
+        descanso = dados.get('descanso', [])
         dtAtividade = dados.get('dtAtividade', [])
 
         if not descanso or not estados or not cidades or not repeticao or not tipoTelefone or not operadoras:
             return jsonify({"error": "One or more required fields are empty."}), 400
         
         # Formata cada parâmetro
-        estados = format_sql_list(dados.get('estado', []))
-        cidades = format_sql_list(dados.get('cidade', []))
-        repeticao = format_sql_list(dados.get('repeticao', []))
-        tipoTelefone = format_sql_list(dados.get('tipoTelefone', []))
-        operadoras = format_sql_list(dados.get('operadora', []))
-        cnaes = format_sql_list(dados.get('cnae', []))
-        naturezas = format_sql_list(dados.get('natureza', []))
-        dtAtividade = format_sql_list(dados.get('dtAtividade', []))
+        estados = format_sql_list(estados)
+        cidades = format_sql_list(cidades)
+        repeticao = format_sql_list(repeticao)
+        tipoTelefone = format_sql_list(tipoTelefone)
+        operadoras = format_sql_list(operadoras)
+        cnaes = format_sql_list(cnaes)
+        naturezas = format_sql_list(naturezas)
         
         # se conteudo de cnaes e naturezas for vazio
         if not cnaes and not naturezas:
