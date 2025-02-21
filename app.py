@@ -88,7 +88,7 @@ def executar_consulta():
         # se conteudo de cnaes e naturezas for vazio
         if not cnaes and not naturezas:
             query = f"""
-            SELECT * FROM {table_name}
+            SELECT top 101 * FROM {table_name}
             WHERE
                 (start_time IS NULL OR start_time < DATEADD(MONTH, -{descanso}, GETDATE()))
                 AND TIPO_TEL IN {tipoTelefone}

@@ -79,7 +79,6 @@
                         </select>
                     </div>
 
-
                     <!-- Tipo de Telefone -->
                     <fieldset class="border p-4 rounded">
                         <legend class="font-semibold">Tipo de telefone?</legend>
@@ -98,7 +97,6 @@
                             </div>
                         </div>
                     </fieldset>
-
 
                     <!-- Repetição -->
                     <fieldset class="border p-4 rounded">
@@ -125,6 +123,12 @@
                         </div>
                     </fieldset>
 
+                    <!-- Descanso -->
+                    <div>
+                        <label for="descanso" class="block mb-2 font-semibold">Descanso de discagem (meses)?</label>
+                        <input type="number" id="descanso" v-model="formData.descanso" class="w-full p-2 border rounded"
+                            min="1">
+                    </div>
                 </div>
 
                 <div id="empresa" class="space-y-6">
@@ -147,6 +151,13 @@
                             opção.</label>
                         <input type="text" id="cnae" v-model="formData.cnaes" class="w-full p-2 border rounded">
                     </div>
+
+                    <!-- data inicio atividade -->
+                    <div>
+                        <label for="dtAtividade" class="block mb-2 font-semibold">Início de atividade (meses)? </label>
+                        <input type="number" id="dtAtividade" v-model="formData.dtAtividade"
+                            class="w-full p-2 border rounded" min="1">
+                    </div>
                 </div>
             </div>
 
@@ -154,23 +165,26 @@
 
             <div id="form-gp2" class="flex-col justify-center items-center text-center">
                 <!-- Loading -->
-                <div v-show="isLoading" class="w-full text-blue-500 font-semibold mb-4">
+                <div v-if="isLoading" class="w-full text-blue-500 font-semibold mb-4">
                     Carregando...
                 </div>
+                <!-- <div v-if="!isLoading && isComplete" class="w-full text-blue-500 font-semibold mb-4">
+                    <span class="text-black bg-blue-500" id="rows">{{rows}} registros encontrados...</span>
+                </div> -->
 
                 <!-- Botões -->
-                <div class="flex justify-center space-x-4">
+                <div class=" flex justify-center space-x-4">
                     <button type="button" @click="testDB"
                         class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">
                         Testar Conexão
                     </button>
 
-                    <button type="button" @click="preview"
+                    <button type="button" @click="(event) => exportCSV(event, true)"
                         class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                         Preview
                     </button>
 
-                    <button type="button" @click="exportCSV"
+                    <button type="button" @click="(event) => exportCSV(event)"
                         class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
                         Exportar CSV
                     </button>
@@ -195,6 +209,10 @@
         const app = createApp({
             setup() {
                 const isLoading = ref(false);
+                const isComplete = ref(false);
+                const preview = ref(false);
+                const mailing = ref()
+                const rows = ref(0)
 
                 // Estado reativo
                 const formData = reactive({
@@ -204,7 +222,9 @@
                     tiposTelefone: [],
                     operadoras: [],
                     cnaes: '',
-                    naturezas: []
+                    naturezas: [],
+                    descanso: '',
+                    dtAtividade: '',
                 });
 
                 // Métodos
@@ -226,11 +246,13 @@
                         tipoTelefone: formData.tiposTelefone,
                         operadora: formData.operadoras,
                         cnae: formData.cnaes.split(';').filter(Boolean),
-                        natureza: formData.naturezas
+                        natureza: formData.naturezas,
+                        descanso: formData.descanso < 1 === 0 ? String(formData.descanso + 1) : String(formData.descanso),
+                        dtAtividade: formData.dtAtividade < 1 === 0 ? String(formData.dtAtividade + 1) : String(formData.dtAtividade)
                     };
 
                     try {
-                        if (body.estado.length === 0 && body.cidade.length === 0 && body.repeticao.length === 0 && body.tipoTelefone.length === 0 && body.operadora.length > 0) {
+                        if (body.estado.length === 0 && body.cidade.length === 0 && body.repeticao.length === 0 && body.tipoTelefone.length === 0 && body.operadora.length > 0 && body.descanso.length > 0 && body.dtAtividade.length > 0) {
                             alert('Preencha todos os campos!');
                             return null; // Retorna null se os campos não estiverem preenchidos
                         } else {
@@ -244,15 +266,26 @@
                     }
                 };
 
-                const exportCSV = async (event) => {
+                const exportCSV = async (event, preview = false) => {
                     event.preventDefault();
                     isLoading.value = true; // Inicia o loading
 
-                    const mailing = await executar();
+                    mailing.value = await executar();
                     if (!mailing) {
                         isLoading.value = false; // Para o loading se não houver dados
                         return; // Retorna se não houver dados
                     }
+
+                    isComplete.value = true;
+                    rows.value = String(mailing.value.length)
+                    alert(rows.value + ' registros encontrados.')
+                    console.log(rows.value);
+
+
+                    // Limita os dados a 100 registros
+                    if (preview) mailing.value = mailing.value.slice(0, 100);
+
+                    // console.log(mailing);
 
                     try {
                         const response = await fetch('/exportar-csv', {
@@ -260,7 +293,7 @@
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify(mailing) // Converte para JSON
+                            body: JSON.stringify(mailing.value)
                         });
 
                         if (response.ok) {
@@ -337,7 +370,9 @@
                 // Expor para o template
                 return {
                     isLoading,
+                    isComplete,
                     formData,
+                    rows,
                     clear,
                     testDB,
                     executar,
