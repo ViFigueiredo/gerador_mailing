@@ -67,6 +67,39 @@
                 </div>
 
                 <div id="telefonia" class="space-y-6">
+                    <!-- Operadora -->
+                    <div>
+                        <label for="operadora" class="block mb-2 font-semibold">Operadora?</label>
+                        <select id="operadora" v-model="formData.operadoras" multiple class="w-full p-2 border rounded">
+                            <option value="VIVO">VIVO</option>
+                            <option value="TIM">TIM</option>
+                            <option value="CLARO">Claro</option>
+                            <option value="OI">Oi</option>
+                            <option value="Algar">Algar</option>
+                        </select>
+                    </div>
+
+
+                    <!-- Tipo de Telefone -->
+                    <fieldset class="border p-4 rounded">
+                        <legend class="font-semibold">Tipo de telefone?</legend>
+                        <div class="card flex flex-wrap justify-center gap-4">
+                            <div class="flex items-center gap-2">
+                                <div class="">
+                                    <Checkbox v-model="formData.tiposTelefone" inputId="fixa" value="FIXO" />
+                                </div>
+                                <span>Fixa</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="">
+                                    <Checkbox v-model="formData.tiposTelefone" inputId="movel" value="CELULAR" />
+                                </div>
+                                <span>Móvel</span>
+                            </div>
+                        </div>
+                    </fieldset>
+
+
                     <!-- Repetição -->
                     <fieldset class="border p-4 rounded">
                         <legend class="font-semibold">Repetição de número?</legend>
@@ -92,46 +125,9 @@
                         </div>
                     </fieldset>
 
-                    <!-- Tipo de Telefone -->
-                    <fieldset class="border p-4 rounded">
-                        <legend class="font-semibold">Tipo de telefone?</legend>
-                        <div class="card flex flex-wrap justify-center gap-4">
-                            <div class="flex items-center gap-2">
-                                <div class="">
-                                    <Checkbox v-model="formData.tiposTelefone" inputId="fixa" value="FIXO" />
-                                </div>
-                                <span>Fixa</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <div class="">
-                                    <Checkbox v-model="formData.tiposTelefone" inputId="movel" value="CELULAR" />
-                                </div>
-                                <span>Móvel</span>
-                            </div>
-                        </div>
-                    </fieldset>
-
-                    <!-- Operadora -->
-                    <div>
-                        <label for="operadora" class="block mb-2 font-semibold">Operadora?</label>
-                        <select id="operadora" v-model="formData.operadoras" multiple class="w-full p-2 border rounded">
-                            <option value="VIVO">VIVO</option>
-                            <option value="TIM">TIM</option>
-                            <option value="CLARO">Claro</option>
-                            <option value="OI">Oi</option>
-                            <option value="Algar">Algar</option>
-                        </select>
-                    </div>
                 </div>
 
                 <div id="empresa" class="space-y-6">
-                    <!-- CNAE -->
-                    <div>
-                        <label for="cnae" class="block mb-2 font-semibold">CNAE? Utilize ";" para mais de uma
-                            opção.</label>
-                        <input type="text" id="cnae" v-model="formData.cnaes" class="w-full p-2 border rounded">
-                    </div>
-
                     <!-- Natureza Jurídica -->
                     <div>
                         <label for="natureza" class="block mb-2 font-semibold">Natureza Jurídica?</label>
@@ -143,6 +139,13 @@
                             <option value="CONDOMINIO EDILICIO">CONDOMINIO EDILICIO</option>
                             <option value="OUTROS">Outros</option>
                         </select>
+                    </div>
+
+                    <!-- CNAE -->
+                    <div>
+                        <label for="cnae" class="block mb-2 font-semibold">CNAE? Utilize ";" para mais de uma
+                            opção.</label>
+                        <input type="text" id="cnae" v-model="formData.cnaes" class="w-full p-2 border rounded">
                     </div>
                 </div>
             </div>
@@ -158,22 +161,27 @@
                 <!-- Botões -->
                 <div class="flex justify-center space-x-4">
                     <button type="button" @click="testDB"
-                        class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">
                         Testar Conexão
                     </button>
 
+                    <button type="button" @click="preview"
+                        class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        Preview
+                    </button>
+
                     <button type="button" @click="exportCSV"
-                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                        class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
                         Exportar CSV
                     </button>
 
                     <button type="button" @click="exportXLSX"
-                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                        class="px-4 py-2 bg-green-500 text-white rounded hover:bg-gray-600">
                         Exportar XLSX
                     </button>
 
                     <button type="button" @click="clear"
-                        class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">
+                        class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
                         Limpar
                     </button>
                 </div>

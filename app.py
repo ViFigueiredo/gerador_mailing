@@ -58,12 +58,13 @@ def executar_consulta():
         print("[IN]REQUISIÇÃO:", dados)
 
         # Add validation for required fields
-        required_fields = ['estado', 'cidade', 'repeticao', 'tipoTelefone', 'operadora']
+        required_fields = ['estado', 'cidade', 'repeticao', 'tipoTelefone', 'operadora', 'descanso']
         for field in required_fields:
             if field not in dados:
                 return jsonify({"error": f"Missing required field: {field}"}), 400    
 
         # Extrai parâmetros do objeto dados
+        descanso = dados.get('descanso', [])
         estados = dados.get('estado', [])
         cidades = dados.get('cidade', [])
         repeticao = dados.get('repeticao', [])
@@ -71,8 +72,6 @@ def executar_consulta():
         operadoras = dados.get('operadora', [])
         cnaes = dados.get('cnae', [])
         naturezas = dados.get('natureza', [])
-
-        descanso = '2'
 
         if not estados or not cidades or not repeticao or not tipoTelefone or not operadoras:
             return jsonify({"error": "One or more required fields are empty."}), 400
@@ -89,9 +88,10 @@ def executar_consulta():
         # se conteudo de cnaes e naturezas for vazio
         if not cnaes and not naturezas:
             query = f"""
-            SELECT TOP 1 * FROM {table_name}
+            SELECT * FROM {table_name}
             WHERE
-                TIPO_TEL IN {tipoTelefone}
+                (start_time IS NULL OR start_time < DATEADD(MONTH, -{descanso}, GETDATE()))
+                AND TIPO_TEL IN {tipoTelefone}
                 AND CONTADORTEL IN {repeticao}
                 AND UF_ IN {estados}
                 AND CIDADE IN {cidades}
@@ -99,8 +99,9 @@ def executar_consulta():
             """
         else:
             query = f"""
-            SELECT TOP 1 * FROM {table_name}
+            SELECT * FROM {table_name}
             WHERE
+                (start_time IS NULL OR start_time < DATEADD(MONTH, -{descanso}, GETDATE()))
                 TIPO_TEL IN {tipoTelefone}
                 AND CONTADORTEL IN {repeticao}
                 AND UF_ IN {estados}
