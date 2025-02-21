@@ -72,8 +72,9 @@ def executar_consulta():
         operadoras = dados.get('operadora', [])
         cnaes = dados.get('cnae', [])
         naturezas = dados.get('natureza', [])
+        dtAtividade = dados.get('dtAtividade', [])
 
-        if not estados or not cidades or not repeticao or not tipoTelefone or not operadoras:
+        if not descanso or not estados or not cidades or not repeticao or not tipoTelefone or not operadoras:
             return jsonify({"error": "One or more required fields are empty."}), 400
         
         # Formata cada parâmetro
@@ -84,6 +85,7 @@ def executar_consulta():
         operadoras = format_sql_list(dados.get('operadora', []))
         cnaes = format_sql_list(dados.get('cnae', []))
         naturezas = format_sql_list(dados.get('natureza', []))
+        dtAtividade = format_sql_list(dados.get('dtAtividade', []))
         
         # se conteudo de cnaes e naturezas for vazio
         if not cnaes and not naturezas:
@@ -97,6 +99,17 @@ def executar_consulta():
                 AND CIDADE IN {cidades}
                 AND OPERADOR_ATIVO IN {operadoras}
             """
+        # elif (not cnaes and not naturezas) and dtAtividade:
+        #     query = f"""
+        #     SELECT top 101 * FROM {table_name}
+        #     WHERE
+        #         (start_time IS NULL OR start_time < DATEADD(MONTH, -{descanso}, GETDATE()))
+        #         AND TIPO_TEL IN {tipoTelefone}
+        #         AND CONTADORTEL IN {repeticao}
+        #         AND UF_ IN {estados}
+        #         AND CIDADE IN {cidades}
+        #         AND OPERADOR_ATIVO IN {operadoras}
+        #     """
         else:
             query = f"""
             SELECT * FROM {table_name}
