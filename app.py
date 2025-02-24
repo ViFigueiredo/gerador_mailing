@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, jsonify, send_file  # type: i
 from dotenv import load_dotenv # type: ignore
 # from pandas import json_normalize
 import pandas as pd
+import time
 
 # Carrega as variáveis do arquivo .env
 load_dotenv()
@@ -45,6 +46,17 @@ def test_db():
     except pyodbc.Error as e:
         return jsonify({'error': str(e)})    
 
+
+@app.route('/cancel', methods=['GET'])
+def cancel_sql():
+    try:
+        cursor = conn.cursor()        
+        time.sleep(5)
+        cursor.cancel()
+        return jsonify({'message': 'Consulta cancelada!'})
+    except pyodbc.Error as e:
+        return jsonify({'error': str(e)})    
+
 @app.route('/executar', methods=['POST'])
 def executar_consulta():    
     try:
@@ -58,7 +70,7 @@ def executar_consulta():
         print("[IN]REQUISIÇÃO:", dados)
 
         # Add validation for required fields
-        required_fields = ['estado', 'cidade', 'repeticao', 'tipoTelefone', 'operadora', 'descanso']
+        required_fields = ['cidade', 'repeticao', 'tipoTelefone', 'operadora', 'descanso']
         for field in required_fields:
             if field not in dados:
                 return jsonify({"error": f"Missing required field: {field}"}), 400    
@@ -74,7 +86,7 @@ def executar_consulta():
         descanso = dados.get('descanso', [])
         dtAtividade = dados.get('dtAtividade', [])
 
-        if not descanso or not estados or not cidades or not repeticao or not tipoTelefone or not operadoras:
+        if not descanso or not cidades or not repeticao or not tipoTelefone or not operadoras:
             return jsonify({"error": "One or more required fields are empty."}), 400
         
         # Formata cada parâmetro
@@ -86,42 +98,24 @@ def executar_consulta():
         cnaes = format_sql_list(cnaes)
         naturezas = format_sql_list(naturezas)
         
+        query = f"""
+        SELECT top 101 * FROM {table_name}
+        WHERE
+            (start_time IS NULL OR start_time < DATEADD(MONTH, -{descanso}, GETDATE()))
+            AND TIPO_TEL IN {tipoTelefone}
+            AND CONTADORTEL IN {repeticao}
+            AND CIDADE IN {cidades}
+            AND OPERADOR_ATIVO IN {operadoras}
+        """
         # se conteudo de cnaes e naturezas for vazio
-        if not cnaes and not naturezas:
-            query = f"""
-            SELECT top 101 * FROM {table_name}
-            WHERE
-                (start_time IS NULL OR start_time < DATEADD(MONTH, -{descanso}, GETDATE()))
-                AND TIPO_TEL IN {tipoTelefone}
-                AND CONTADORTEL IN {repeticao}
-                AND UF_ IN {estados}
-                AND CIDADE IN {cidades}
-                AND OPERADOR_ATIVO IN {operadoras}
-            """
-        # elif (not cnaes and not naturezas) and dtAtividade:
-        #     query = f"""
-        #     SELECT top 101 * FROM {table_name}
-        #     WHERE
-        #         (start_time IS NULL OR start_time < DATEADD(MONTH, -{descanso}, GETDATE()))
-        #         AND TIPO_TEL IN {tipoTelefone}
-        #         AND CONTADORTEL IN {repeticao}
-        #         AND UF_ IN {estados}
-        #         AND CIDADE IN {cidades}
-        #         AND OPERADOR_ATIVO IN {operadoras}
-        #     """
-        else:
-            query = f"""
-            SELECT * FROM {table_name}
-            WHERE
-                (start_time IS NULL OR start_time < DATEADD(MONTH, -{descanso}, GETDATE()))
-                TIPO_TEL IN {tipoTelefone}
-                AND CONTADORTEL IN {repeticao}
-                AND UF_ IN {estados}
-                AND CIDADE IN {cidades}
-                AND OPERADOR_ATIVO IN {operadoras}
-                AND CNAE_PRINCIPAL IN {cnaes}
-                AND NATUREZA_JURIDICA IN {naturezas}
-            """
+        if estados:
+            query.join(f""" AND UF_ IN {estados}""")
+        if cnaes:
+            query.join(f""" AND CNAE_PRINCIPAL IN {cnaes}""")
+        if naturezas:
+            query.join(f""" AND NATUREZA_JURIDICA IN {naturezas}""")            
+        if dtAtividade:
+            query.join(f""" AND start_atividade < DATEADD(MONTH, -{dtAtividade}, GETDATE())""")
 
         # Exibir a consulta SQL gerada
         print("Consulta SQL:", query)

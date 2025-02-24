@@ -173,31 +173,36 @@
                 </div> -->
 
                 <!-- Botões -->
-                <div class=" flex justify-center space-x-4">
-                    <button type="button" @click="testDB"
-                        class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">
-                        Testar Conexão
-                    </button>
+                <div class=" flex flex-col justify-center space-y-4">
+                    <div class="btn-top space-x-4">
+                        <button type="button" @click="testDB"
+                            class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">
+                            Testar Conexão
+                        </button>
+                        <button type="button" @click="cancelSQL"
+                            class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">
+                            Cancelar consulta atual
+                        </button>
+                    </div>
 
-                    <button type="button" @click="(event) => exportCSV(event, true)"
-                        class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                        Preview
-                    </button>
-
-                    <button type="button" @click="(event) => exportCSV(event)"
-                        class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-                        Exportar CSV
-                    </button>
-
-                    <button type="button" @click="exportXLSX"
-                        class="px-4 py-2 bg-green-500 text-white rounded hover:bg-gray-600">
-                        Exportar XLSX
-                    </button>
-
-                    <button type="button" @click="clear"
-                        class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
-                        Limpar
-                    </button>
+                    <div class="btn-bottom space-x-4">
+                        <button type="button" @click="(event) => exportCSV(event, true)"
+                            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                            Preview
+                        </button>
+                        <button type="button" @click="(event) => exportCSV(event)"
+                            class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                            Exportar CSV
+                        </button>
+                        <button type="button" @click="exportXLSX"
+                            class="px-4 py-2 bg-green-500 text-white rounded hover:bg-gray-600">
+                            Exportar XLSX
+                        </button>
+                        <button type="button" @click="clear"
+                            class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                            Limpar
+                        </button>
+                    </div>
                 </div>
             </div>
         </form>
@@ -232,6 +237,18 @@
                     try {
                         const response = await axios.get('/test-db');
                         alert(response.data.message);
+                    } catch (error) {
+                        // console.error('Erro na conexão:', error);
+                        alert('Erro na conexão!');
+                    }
+                };
+
+                const cancelSQL = async () => {
+                    try {
+                        const response = await axios.get('/cancel');
+                        if (response){
+                            alert(response.data.message);
+                        }
                     } catch (error) {
                         // console.error('Erro na conexão:', error);
                         alert('Erro na conexão!');
