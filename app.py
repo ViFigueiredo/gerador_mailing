@@ -85,9 +85,16 @@ def executar_consulta():
         descanso = dados.get('descanso', [])
         dtAtividade = dados.get('dtAtividade', [])
 
-        if not descanso or not cidades or not repeticao or not tipoTelefone or not operadoras:
+        if not descanso or not repeticao or not tipoTelefone or not operadoras:
             return jsonify({"error": "One or more required fields are empty."}), 400
         
+        cidades_default = ['RECIFE','CARUARU','OLINDA','JABOATAO','CABO DE SANTO AGOSTINHO','GARANHUNS','CARPINA','CAMARAGIBE','FORTALEZA','CAUCAIA','JUAZEIRO DO NORTE','SOBRAL','SALVADOR','BARREIRAS','ITABUNA','SIMOES FILHO','FEIRA DE SANTANA','PAULO AFONSO','ILHEUS','PORTO SEGURO','JOAO PESSOA','CAMPINA GRANDE','PATOS','NATAL','MOSSORO','PARNAMIRIM','MACEIO','ARAPIRACA','ARACAJU','TERESINA','PARANAIBA','PICOS','CRATO','LAGARTO','ARAPIRACA']
+
+        if not cidades:
+            cidades = cidades_default
+        else:
+            cidades = cidades.join(cidades_default)
+
         # Formata cada parâmetro
         estados = format_sql_list(estados)
         cidades = format_sql_list(cidades)
@@ -96,7 +103,14 @@ def executar_consulta():
         operadoras = format_sql_list(operadoras)
         cnaes = format_sql_list(cnaes)
         naturezas = format_sql_list(naturezas)
+
+        print(operadoras)
         
+        operadores_like = " OR ".join(
+            [f"OPERADOR_ATIVO LIKE '%{operador.strip().strip('\'')}%'"
+            for operador in operadoras.strip("()").split(", ")]
+        )
+
         query = f"""
         SELECT top 101 * FROM {table_name}
         WHERE
@@ -104,17 +118,18 @@ def executar_consulta():
             AND TIPO_TEL IN {tipoTelefone}
             AND CONTADORTEL IN {repeticao}
             AND CIDADE IN {cidades}
-            AND OPERADOR_ATIVO IN {operadoras}
+            AND ({operadores_like})
         """
-        # se conteudo de cnaes e naturezas for vazio
+
+        # Adicionando condições adicionais se existirem
         if estados:
-            query.join(f""" AND UF_ IN {estados}""")
+            query += f" AND UF_ IN {estados}"
         if cnaes:
-            query.join(f""" AND CNAE_PRINCIPAL IN {cnaes}""")
+            query += f" AND CNAE_PRINCIPAL IN {cnaes}"
         if naturezas:
-            query.join(f""" AND NATUREZA_JURIDICA IN {naturezas}""")            
+            query += f" AND NATUREZA_JURIDICA IN {naturezas}"
         if dtAtividade:
-            query.join(f""" AND start_atividade < DATEADD(MONTH, -{dtAtividade}, GETDATE())""")
+            query += f" AND start_atividade < DATEADD(MONTH, -{dtAtividade}, GETDATE())"
 
         # Exibir a consulta SQL gerada
         print("Consulta SQL:", query)
