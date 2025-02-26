@@ -46,7 +46,6 @@ def test_db():
     except pyodbc.Error as e:
         return jsonify({'error': str(e)})    
 
-
 @app.route('/cancel', methods=['GET'])
 def cancel_sql():
     try:

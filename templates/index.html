@@ -71,11 +71,12 @@
                     <div>
                         <label for="operadora" class="block mb-2 font-semibold">Operadora?</label>
                         <select id="operadora" v-model="formData.operadoras" multiple class="w-full p-2 border rounded">
-                            <option value="VIVO">VIVO</option>
-                            <option value="TIM">TIM</option>
+                            <option value="Algar">Algar</option>
                             <option value="CLARO">Claro</option>
                             <option value="OI">Oi</option>
-                            <option value="Algar">Algar</option>
+                            <option value="TIM">TIM</option>
+                            <option value="TELEFONICA">Telefonica</option>
+                            <option value="VIVO">VIVO</option>
                         </select>
                     </div>
 
@@ -185,7 +186,7 @@
                         </button>
                     </div>
 
-                    <div class="btn-bottom space-x-4">
+                    <div class="btn-bottom space-x-4 pb-8">
                         <button type="button" @click="(event) => exportCSV(event, true)"
                             class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                             Preview
@@ -392,6 +393,7 @@
                     rows,
                     clear,
                     testDB,
+                    cancelSQL,
                     executar,
                     exportCSV,
                     exportXLSX
