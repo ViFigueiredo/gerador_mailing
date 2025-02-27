@@ -112,7 +112,7 @@ def executar_consulta():
         )
 
         query = f"""
-        SELECT top 101 * FROM {table_name}
+        SELECT * FROM {table_name}
         WHERE
             (start_time IS NULL OR start_time < DATEADD(MONTH, -{descanso}, GETDATE()))
             AND TIPO_TEL IN {tipoTelefone}
